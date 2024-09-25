@@ -1,23 +1,15 @@
-import { Scene } from "phaser";
-
-export class Preloader extends Scene {
+export default class PreloaderScene extends Phaser.Scene {
   constructor() {
     super("Preloader");
   }
 
-  //   init() {}
-
   preload() {
-    //  Load the assets for the game - Replace with your own assets
-    this.load.setPath("assets");
-    this.load.image("background", "bg.png");
-    this.load.image("ball", "blueball.png");
-    this.load.image("ball", "greenball.png");
-    this.load.image("ball", "pinkball.png");
-    this.load.image("ball", "redball.png");
+    // Загрузка изображений для шаров и пушки
+    this.load.image("gem", "./assets/gem.png");
   }
 
   create() {
-    this.scene.start("MainMenu");
+    // Переход на основную игровую сцену после загрузки ресурсов
+    this.scene.start("playGame");
   }
 }

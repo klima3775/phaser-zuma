@@ -1,46 +1,27 @@
-// import { Boot } from "./scenes/Boot";
-// import { Game } from "./scenes/Game";
-// import { GameOver } from "./scenes/GameOver";
-// import { MainMenu } from "./scenes/MainMenu";
-// import { Preloader } from "./scenes/Preloader";
-
-// //  Find out more information about the Game Config at:
-// //  https://newdocs.phaser.io/docs/3.70.0/Phaser.Types.Core.GameConfig
-// const config = {
-//   type: Phaser.AUTO,
-//   width: 800,
-//   height: 600,
-//   parent: "game-container",
-//   backgroundColor: "#028af8",
-//   scale: {
-//     mode: Phaser.Scale.FIT,
-//     autoCenter: Phaser.Scale.CENTER_BOTH,
-//   },
-//   scene: [Boot, Preloader, MainMenu, Game, GameOver],
-// };
-
-// export default new Phaser.Game(config);
 import Phaser from "phaser";
-import Boot from "./scenes/Boot.js";
-import Game from "./scenes/Game.js";
+import Preloader from "./scenes/Preloader";
+import PlayGame from "./scenes/playGame";
+import gameOptions from "./gameOptions";
 
-const config = {
-  type: Phaser.AUTO,
-  width: 800,
-  height: 600,
-  parent: "game-container",
-  backgroundColor: "#028af8",
-  scale: {
-    mode: Phaser.Scale.FIT,
-    autoCenter: Phaser.Scale.CENTER_BOTH,
-  },
-  scene: [Boot, Game],
-  physics: {
-    default: "arcade",
-    arcade: {
-      debug: false,
-    },
-  },
+// объект для инициализации Scale Manager
+const scaleObject = {
+  mode: Phaser.Scale.FIT, // подгонка размера для автоматического размещения в окне
+  autoCenter: Phaser.Scale.CENTER_BOTH, // центрирование игры по горизонтали и вертикали
+  parent: "game-container", // DOM id, где будет отображаться игра
+  width: gameOptions.gameSize.width, // ширина игры в пикселях
+  height: gameOptions.gameSize.height, // высота игры в пикселях
 };
 
-const game = new Phaser.Game(config);
+// объект конфигурации игры
+const configObject = {
+  type: Phaser.AUTO, // рендерер игры
+  backgroundColor: gameOptions.gameBackgroundColor, // цвет фона игры
+  scale: scaleObject, // настройки масштаба
+  scene: [
+    // массив с игровыми сценами
+    Preloader, // сцена PreloadAssets
+    PlayGame, // сцена PlayGame
+  ],
+};
+
+new Phaser.Game(configObject);
