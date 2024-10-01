@@ -1,13 +1,14 @@
-const gameOptions = {
+import path from "./curveLine.js";
+
+const GameOptions = {
   gameSize: {
     width: 1920,
     height: 1080,
   },
-
-  gameBackgroundColor: "#028af8",
-
-  gemSpeed: 400, // gem speed, in pixels per second
-  gemRadius: 24, // gem radius, in pixels
+  gameBackgroundColor: 0x222222,
+  path: path,
+  gemSpeed: 120,
+  gemRadius: 24,
 };
 
-export default gameOptions;
+export default GameOptions;

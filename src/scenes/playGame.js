@@ -1,93 +1,72 @@
-import gameOptions from "../gameOptions";
-import { path } from "../curveLine";
+import GameOptions from "../gameOptions";
 
-// Класс PlayGame расширяет класс Phaser.Scene
-class PlayGame extends Phaser.Scene {
+export default class PlayGame extends Phaser.Scene {
   constructor() {
-    super({
-      key: "PlayGame",
-    });
+    super({ key: "PlayGame" });
   }
 
-  graphics; // объект графики, где будет отрисовываться путь
-  path; // путь
-  gems; // массив со всеми драгоценными камнями
-
-  // метод, который будет вызван после создания экземпляра
   create() {
-    // инициализация массива драгоценных камней
-    this.gems = [];
+    this.gems = []; // Инициализация массива для хранения драгоценных камней
 
-    // создание пути и загрузка кривых из строки JSON
+    // Создание пути и загрузка кривых из объекта
     this.path = new Phaser.Curves.Path(0, 0);
-    this.path.fromJSON(JSON.parse(path));
+    this.path.fromJSON(GameOptions.path);
 
-    // получение длины пути в пикселях
+    // Получение длины пути в пикселях и сохранение в данных сцены
     this.data.set("pathLength", this.path.getLength());
 
-    // добавление графического объекта и отрисовка пути на нем
+    // Создание графического объекта и отрисовка пути на нем
     this.graphics = this.add.graphics();
-    this.graphics.lineStyle(2, 0xffffff, 1);
-    this.path.draw(this.graphics);
+    this.graphics.lineStyle(2, 0xffffff, 1); // Установка стиля линии
+    this.path.draw(this.graphics); // Отрисовка пути
 
-    // добавление драгоценного камня
+    // Добавление первого драгоценного камня
     this.addGem(0);
   }
 
-  // метод для добавления драгоценного камня
-  // t: время относительно пути, от 0 до 1, где 0 = в начале пути, а 1 = в конце пути
+  // Метод для добавления драгоценного камня
   addGem(t) {
-    // получение начальной точки драгоценного камня
     const startPoint = this.path.getPoint(t);
-
-    // создание спрайта в начальной точке драгоценного камня
     const gemSprite = this.add.sprite(startPoint.x, startPoint.y, "gem");
-
-    // установка пользовательского свойства "t"
     gemSprite.setData("t", t);
-
-    // добавление спрайта драгоценного камня в массив gemSprite
     this.gems.push(gemSprite);
   }
 
-  // метод, который будет вызываться в каждом кадре
-  // time: время, прошедшее с начала, в миллисекундах
-  // deltaTime: время, прошедшее с последнего кадра, в миллисекундах
+  // Метод, который будет вызываться на каждом кадре
   update(time, deltaTime) {
-    // определение движения delta t
     const deltaT =
-      ((deltaTime / 1000) * gameOptions.gemSpeed) / this.data.get("pathLength");
+      ((deltaTime / 1000) * GameOptions.gemSpeed) / this.data.get("pathLength");
 
-    // перебор всех драгоценных камней
+    // Перебор всех драгоценных камней
     this.gems.forEach((gem, index) => {
-      // обновление данных t драгоценного камня
+      // Обновление данных "t" драгоценного камня
       gem.setData("t", gem.getData("t") + deltaT);
 
-      // если драгоценный камень достиг конца пути
+      // Если драгоценный камень достиг конца пути
       if (gem.getData("t") > 1) {
-        // перезапуск игры
+        // Перезапуск игры
         this.scene.start("PlayGame");
-      }
-      // если драгоценный камень не достиг конца пути
-      else {
-        // получение новой точки пути драгоценного камня
+      } else {
+        // Если драгоценный камень не достиг конца пути
+
+        // Получение новой точки пути драгоценного камня
         const pathPoint = this.path.getPoint(gem.getData("t"));
 
-        // перемещение драгоценного камня в новую точку пути
+        // Перемещение драгоценного камня в новую точку пути
         gem.setPosition(pathPoint.x, pathPoint.y);
 
-        // получение пройденного расстояния в пикселях
+        // Получение пройденного расстояния в пикселях
         const travelledDistance =
           this.data.get("pathLength") * gem.getData("t");
 
-        // если это последний драгоценный камень и есть достаточно места для другого драгоценного камня
+        // Если это последний драгоценный камень и есть достаточно места для другого драгоценного камня
         if (
           index == this.gems.length - 1 &&
-          travelledDistance > gameOptions.gemRadius * 2
+          travelledDistance > GameOptions.gemRadius * 2
         ) {
-          // добавление драгоценного камня прямо за ним
+          // Добавление драгоценного камня прямо за ним
           this.addGem(
-            (travelledDistance - gameOptions.gemRadius * 2) /
+            (travelledDistance - GameOptions.gemRadius * 2) /
               this.data.get("pathLength")
           );
         }
@@ -95,4 +74,3 @@ class PlayGame extends Phaser.Scene {
     });
   }
 }
-export default PlayGame;
