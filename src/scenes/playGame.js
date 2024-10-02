@@ -22,10 +22,17 @@ export default class PlayGame extends Phaser.Scene {
 
     // Добавление первого драгоценного камня
     this.addGem(0);
+
+    // Добавление шарика для выстрела в центр экрана
+    this.shootingBall = this.add.sprite(
+      this.game.config.width / 2,
+      this.game.config.height / 2,
+      "gem"
+    );
+    this.shootingBall.setTint(0x00ff00); // Установка цвета для шарика
   }
 
-  // // Метод для добавления драгоценного камня
-
+  // Метод для добавления драгоценного камня
   addGem(t) {
     const startPoint = this.path.getPoint(t);
 
