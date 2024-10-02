@@ -24,10 +24,23 @@ export default class PlayGame extends Phaser.Scene {
     this.addGem(0);
   }
 
-  // Метод для добавления драгоценного камня
+  // // Метод для добавления драгоценного камня
+
   addGem(t) {
     const startPoint = this.path.getPoint(t);
+
+    // Выбор случайного цвета из массива gemColor
+    const randomColorIndex = Math.floor(
+      Math.random() * GameOptions.gemColor.length
+    );
+    const gemColor = GameOptions.gemColor[randomColorIndex];
+
+    // Создание драгоценного камня с цветом
     const gemSprite = this.add.sprite(startPoint.x, startPoint.y, "gem");
+
+    // Применение цвета с помощью tint
+    gemSprite.setTint(gemColor);
+
     gemSprite.setData("t", t);
     this.gems.push(gemSprite);
   }
