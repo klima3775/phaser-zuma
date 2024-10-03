@@ -329,3 +329,4 @@ export class PlayGame extends Phaser.Scene {
     }
   }
 }
+export default PlayGame;
