@@ -1,18 +1,13 @@
-// THE GAME ITSELF
-
-// modules to import
 import { GameOptions } from "../gameOptions";
-import { LinkedList } from "../linkedList";
 
-// various game modes
+// Перечисление режимов игры
 enum gameMode {
-  IDLE, // waiting for player input
-  FIRING, // player fired the bullet gem
-  HIT, // when a bullet gem collides with anoter gem
-  STOP, // simply does nothing, useful to debug
+  IDLE, // Ожидание
+  FIRING, // Стрельба
+  HIT, // Попадание
+  STOP, // Остановка
 }
 
-// PlayGame class extends Phaser.Scene class
 export class PlayGame extends Phaser.Scene {
   constructor() {
     super({
@@ -20,34 +15,30 @@ export class PlayGame extends Phaser.Scene {
     });
   }
 
-  graphics: Phaser.GameObjects.Graphics; // graphics object where to render the path
-  path: Phaser.Curves.Path; // the path
-  gems: LinkedList; // linked list with all gems
-  gemBullet: Phaser.GameObjects.Sprite; // the gem the player fires
-  debugText: Phaser.GameObjects.Text; // just a text object to display debug information
+  graphics: Phaser.GameObjects.Graphics; // Графика для рисования пути
+  path: Phaser.Curves.Path; // Путь, по которому движутся шары
+  balls: any[] = []; // Массив шаров
+  gemBullet: Phaser.GameObjects.Sprite; // Шар, который игрок стреляет
+  debugText: Phaser.GameObjects.Text; // Текст для отладки
 
-  // method to be called once the instance has been created
   create(): void {
-    // initialize gems list
-    this.gems = new LinkedList();
-
-    // create the path and load curves from a JSON string
+    // Инициализация пути
     this.path = new Phaser.Curves.Path(0, 0);
     this.path.fromJSON(JSON.parse(GameOptions.path));
 
-    // get path length, in pixels
+    // Установка длины пути и режима игры
     this.data.set("pathLength", this.path.getLength());
     this.data.set("gameMode", gameMode.IDLE);
 
-    // add the graphic object and draw the path on it
+    // Рисование пути
     this.graphics = this.add.graphics();
     this.graphics.lineStyle(2, 0xffffff, 1);
     this.path.draw(this.graphics);
 
-    // add a gem
-    this.addGem(0, 0, Phaser.Math.RND.pick(GameOptions.gemColor));
+    // Добавление первого шара
+    this.addBall(0, Phaser.Math.RND.pick(GameOptions.gemColor));
 
-    // add gem bullet
+    // Создание шарика игрока
     this.gemBullet = this.add.sprite(
       (this.game.config.width as number) / 2,
       (this.game.config.height as number) / 2,
@@ -55,19 +46,14 @@ export class PlayGame extends Phaser.Scene {
     );
     this.gemBullet.setTint(Phaser.Math.RND.pick(GameOptions.gemColor));
 
-    // event to be triggered when the player clicks or taps the screen
+    // Обработчик событий нажатия
     this.input.on("pointerdown", (pointer: Phaser.Input.Pointer) => {
-      // check game mode
       switch (this.data.get("gameMode")) {
-        // idle, waiting for player input
-        case gameMode.IDLE:
-          // game mode now is "firing"
+        case gameMode.IDLE: // Если в режиме ожидания
           this.data.set("gameMode", gameMode.FIRING);
-
-          // write the debug message
           this.debugText.setText("FIRING");
 
-          // check the line of fire between bullet and input position
+          // Создание линии стрельбы
           const lineOfFire: Phaser.Geom.Line = new Phaser.Geom.Line(
             this.gemBullet.x,
             this.gemBullet.y,
@@ -75,70 +61,82 @@ export class PlayGame extends Phaser.Scene {
             pointer.y
           );
 
-          // save the line of fire as a custom data in gem bullet
+          // Установка угла стрельбы
           this.gemBullet.setData("angle", Phaser.Geom.Line.Angle(lineOfFire));
           break;
 
-        // stop, when the game is paused
-        case gameMode.STOP:
-          // game mode now is "hit"
+        case gameMode.STOP: // Если в режиме остановки
           this.data.set("gameMode", gameMode.HIT);
           break;
       }
     });
 
-    // add the debug text
+    // Текст для отладки
     this.debugText = this.add.text(32, 32, "CLICK OR TAP TO FIRE", {
-      color: "#00ff00", // text color
-      fontSize: 32, // font size
+      color: "#00ff00",
+      fontSize: 32,
     });
   }
 
-  // method to add a gem
-  // t : time relative to path, from 0 to 1, where 0 = at the beginning of the path, and 1 = at the end of the path
-  // index : the index of gems list where to insert the gem
-  // color : gem color
-  addGem(t: number, index: number, color: number): void {
-    // get gem start point
+  // Метод для добавления нового шара
+  addBall(t: number, color: number): void {
     const startPoint: Phaser.Math.Vector2 = this.path.getPoint(t);
-
-    // create a sprite at gem start point
-    const gemSprite: Phaser.GameObjects.Sprite = this.add.sprite(
+    const ballSprite: Phaser.GameObjects.Sprite = this.add.sprite(
       startPoint.x,
       startPoint.y,
       "gem"
     );
+    ballSprite.setTint(color); // Установка цвета шара
+    ballSprite.setData("t", t);
+    ballSprite.setData("color", color);
 
-    // tint the sprite
-    gemSprite.setTint(color);
+    this.balls.push(ballSprite); // Добавление шара в массив
+    this.checkForMatches(); // Проверка на совпадения
+  }
 
-    // set a custom "t" property to save the time relative to path
-    gemSprite.setData("t", t);
+  // Метод для проверки совпадений между шарами
+  checkForMatches(): void {
+    let count = 1;
+    let start = 0;
 
-    // add gem sprite to gemSprite list by appending it or inserting at a given position
-    if (index == this.gems.size) {
-      this.gems.append(gemSprite);
-    } else {
-      this.gems.insertAt(gemSprite, index);
+    for (let i = 1; i < this.balls.length; i++) {
+      if (
+        this.balls[i].getData("color") === this.balls[i - 1].getData("color")
+      ) {
+        count++;
+      } else {
+        if (count >= 3) {
+          this.removeBalls(start, count); // Удаление совпадающих шаров
+        }
+        count = 1; // Сброс счетчика
+        start = i; // Установка начальной позиции
+      }
+    }
+
+    if (count >= 3) {
+      this.removeBalls(start, count); // Удаление последних совпадений
     }
   }
 
-  // metod to be called at each frame
-  // time : time passed since the beginning, in milliseconds
-  // deltaTime : time passed since last frame, in milliseconds
+  // Метод для удаления шаров
+  removeBalls(start: number, count: number): void {
+    for (let i = 0; i < count; i++) {
+      this.balls[start + i].destroy(); // Удаление шара из сцены
+    }
+    this.balls.splice(start, count); // Удаление из массива
+  }
+
+  // Основной метод обновления
   update(time: number, deltaTime: number) {
-    // if game mode is "stop", the game is paused so we can exit right now
     if (this.data.get("gameMode") == gameMode.STOP) {
-      return;
+      return; // Если в режиме остановки, ничего не делаем
     }
 
-    // determine delta t movement according to delta time and path length
     const deltaT: number =
       ((deltaTime / 1000) * GameOptions.gemSpeed) / this.data.get("pathLength");
 
-    // is the player firing?
     if (this.data.get("gameMode") == gameMode.FIRING) {
-      // update bullet x and y position according to speed, delta time and angle of fire
+      // Обновление позиции шарика игрока
       this.gemBullet.x +=
         ((GameOptions.bulletSpeed * deltaTime) / 1000) *
         Math.cos(this.gemBullet.getData("angle"));
@@ -146,7 +144,7 @@ export class PlayGame extends Phaser.Scene {
         ((GameOptions.bulletSpeed * deltaTime) / 1000) *
         Math.sin(this.gemBullet.getData("angle"));
 
-      // is the bullet outside the screen?
+      // Проверка выхода за пределы
       if (
         this.gemBullet.x < -GameOptions.gemRadius ||
         this.gemBullet.y < -GameOptions.gemRadius ||
@@ -155,102 +153,75 @@ export class PlayGame extends Phaser.Scene {
         this.gemBullet.y >
           (this.game.config.height as number) + GameOptions.gemRadius
       ) {
-        // place the bullet in the middle of the screen again
+        // Возврат шарика в центр
         this.gemBullet.setPosition(
           (this.game.config.width as number) / 2,
           (this.game.config.height as number) / 2
         );
-
-        // give the bullet a new random color
         this.gemBullet.setTint(Phaser.Math.RND.pick(GameOptions.gemColor));
-
-        // set game mode to "idle", waiting for player input
         this.data.set("gameMode", gameMode.IDLE);
-
-        // update debug text
         this.debugText.setText("CLICK OR TAP TO FIRE");
       }
     }
 
-    // loop through all gems
-    this.gems.forEach((gem: Phaser.GameObjects.Sprite, index: number) => {
-      // set gem fully opaque
-      gem.setAlpha(1);
+    // Обновление всех шаров
+    this.balls.forEach((ball: Phaser.GameObjects.Sprite, index: number) => {
+      ball.setAlpha(1); // Установка альфа-канала
+      ball.setData("t", ball.getData("t") + deltaT); // Обновление позиции по пути
 
-      // update gem's t data
-      gem.setData("t", gem.getData("t") + deltaT);
-
-      // if the gem reached the end of the path...
-      if (gem.getData("t") > 1) {
-        // restart the game
-        this.scene.start("PlayGame");
-      }
-
-      // if the gem did not reach the end of the path...
-      else {
-        // get new gem path point
+      if (ball.getData("t") > 1) {
+        // Если шар выходит за пределы пути
+        this.scene.start("PlayGame"); // Перезапуск сцены
+      } else {
         const pathPoint: Phaser.Math.Vector2 = this.path.getPoint(
-          gem.getData("t")
+          ball.getData("t")
         );
+        ball.setPosition(pathPoint.x, pathPoint.y); // Установка новой позиции шара
 
-        // move the gem to new path point
-        gem.setPosition(pathPoint.x, pathPoint.y);
-
-        // get the tangent to path at gem's position
         const vector: Phaser.Math.Vector2 = this.path.getTangent(
-          gem.getData("t")
+          ball.getData("t")
         );
+        ball.setRotation(vector.angle()); // Установка угла поворота шара
 
-        // rotate the gem accordingly
-        gem.setRotation(vector.angle());
-
-        // is the player firing?
         if (this.data.get("gameMode") == gameMode.FIRING) {
-          // get the distance between gem and bullet
           const distance: number = Phaser.Math.Distance.Squared(
-            gem.x,
-            gem.y,
+            ball.x,
+            ball.y,
             this.gemBullet.x,
             this.gemBullet.y
           );
 
-          // is the distance smaller than gem diameter?
           if (distance < GameOptions.gemRadius * 4 * GameOptions.gemRadius) {
-            // game mode must be set to "hit"
-            this.data.set("gameMode", gameMode.HIT);
+            this.data.set("gameMode", gameMode.HIT); // Если произошло попадание
+            ball.alpha = 0.5; // Уменьшаем видимость шара
 
-            // highlight the gem by making is semi transparent
-            gem.alpha = 0.5;
-
-            // get the angle between gem center and bullet center
             const angle: number = Phaser.Math.RadToDeg(
               Phaser.Math.Angle.Between(
                 this.gemBullet.x,
                 this.gemBullet.y,
-                gem.x,
-                gem.y
+                ball.x,
+                ball.y
               )
             );
 
-            // get the relative angle taking into account gem rotation
             const relativeAngle: number = Phaser.Math.Angle.WrapDegrees(
-              angle - gem.angle
+              angle - ball.angle
             );
 
-            // at this time the bullet should become a gem to be inserted at index-th place or index+1-th place according to relative angle
+            // Определяем, куда вставить новый шар
             this.data.set(
               "insertInPlace",
               relativeAngle < -90 ? index : index + 1
             );
 
-            // update debug text to explain everything
+            // Отладочный текст
             this.debugText.setText(
               "COLLISION\n\nItem number " +
                 index +
                 "\n\nAngle between\nbullet and item: " +
                 Math.round(angle) +
                 "\n\nAngle of\npath tangent: " +
-                Math.round(gem.angle) +
+                Math.round(ball.angle) +
                 "\n\nRelative angle: " +
                 Math.round(relativeAngle) +
                 "\n\nMust be placed\n" +
@@ -260,73 +231,57 @@ export class PlayGame extends Phaser.Scene {
                 "\n\nFIRE TO CONTINUE"
             );
 
-            // stop the game
-            this.data.set("gameMode", gameMode.STOP);
+            this.data.set("gameMode", gameMode.STOP); // Переход в режим остановки
           }
         }
 
-        // get travelled distance, in pixels
+        // Добавление нового шара при достижении конца пути
         const travelledDistance: number =
-          this.data.get("pathLength") * gem.getData("t");
+          this.data.get("pathLength") * ball.getData("t");
 
-        // if this is the last gem and there's enough space for another gem
         if (
-          index == this.gems.size - 1 &&
+          index == this.balls.length - 1 &&
           travelledDistance > GameOptions.gemRadius * 2
         ) {
-          // add a gem right behind it
-          this.addGem(
+          this.addBall(
             (travelledDistance - GameOptions.gemRadius * 2) /
               this.data.get("pathLength"),
-            this.gems.size,
             Phaser.Math.RND.pick(GameOptions.gemColor)
           );
         }
       }
     });
 
-    // is game mode set to "hit"?
+    // Обработка попадания
     if (this.data.get("gameMode") == gameMode.HIT) {
-      // convert gem diameter, in pixels to "t", the time in the path from 0 to 1
       const gemT: number =
         (GameOptions.gemRadius * 2) / this.data.get("pathLength");
 
-      // loop through all gems from the first one to the one to be inserted
+      // Сдвиг всех шаров до места вставки
       for (let i: number = 0; i < this.data.get("insertInPlace"); i++) {
-        // increase "t" data of the gem to move it forward by one gem
-        this.gems.getAt(i).setData("t", this.gems.getAt(i).getData("t") + gemT);
-
-        // get the new path point
+        this.balls[i].setData("t", this.balls[i].getData("t") + gemT); // Обновление t
         const pathPoint: Phaser.Math.Vector2 = this.path.getPoint(
-          this.gems.getAt(i).getData("t")
+          this.balls[i].getData("t")
         );
-
-        // move gem sprite forward
-        this.gems.getAt(i).setPosition(pathPoint.x, pathPoint.y);
+        this.balls[i].setPosition(pathPoint.x, pathPoint.y); // Установка новой позиции
       }
 
-      // add the new gem
-      this.addGem(
-        this.gems.getAt(this.data.get("insertInPlace")).data.get("t") + gemT,
-        this.data.get("insertInPlace"),
-        this.gemBullet.tint
+      // Добавление нового шара
+      this.addBall(
+        this.balls[this.data.get("insertInPlace")].getData("t") + gemT,
+        this.gemBullet.tint // Использование цвета из шарика
       );
 
-      // place the gem bullet in the center of the screen
+      // Возврат шарика игрока в центр
       this.gemBullet.setPosition(
         (this.game.config.width as number) / 2,
         (this.game.config.height as number) / 2
       );
-
-      // give the gem bullet a new random color
-      this.gemBullet.setTint(Phaser.Math.RND.pick(GameOptions.gemColor));
-
-      // game mode is now "idle", waiting for player input
+      this.gemBullet.setTint(Phaser.Math.RND.pick(GameOptions.gemColor)); // Установка нового цвета
       this.data.set("gameMode", gameMode.IDLE);
-
-      // update debug text
-      this.debugText.setText("CLICK OR TAP TO FIRE");
+      this.debugText.setText("CLICK OR TAP TO FIRE"); // Сброс текста
     }
   }
 }
+
 export default PlayGame;
