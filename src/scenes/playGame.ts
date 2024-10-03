@@ -267,10 +267,10 @@ export class PlayGame extends Phaser.Scene {
       }
 
       // Добавление нового шара
-      this.addBall(
-        this.balls[this.data.get("insertInPlace")].getData("t") + gemT,
-        this.gemBullet.tint // Использование цвета из шарика
-      );
+      // this.addBall(
+      //   this.balls[this.data.get("insertInPlace")].getData("t") + gemT,
+      //   this.gemBullet.tint // Использование цвета из шарика
+      // );
 
       // Возврат шарика игрока в центр
       this.gemBullet.setPosition(
