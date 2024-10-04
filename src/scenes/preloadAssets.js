@@ -7,6 +7,7 @@ export class PreloadAssets extends Phaser.Scene {
 
   preload() {
     this.load.image("gem", "../../public/assets/gem.png");
+    this.load.image("bg", "../../public/assets/bg.webp");
   }
 
   create() {

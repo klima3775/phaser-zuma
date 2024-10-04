@@ -22,6 +22,7 @@ export class PlayGame extends Phaser.Scene {
   }
 
   create() {
+    this.add.image(0, 0, "bg").setOrigin(0, 0);
     // Инициализация пути
     this.path = new Phaser.Curves.Path(0, 0);
     this.path.fromJSON(JSON.parse(GameOptions.path));
