@@ -1,5 +1,5 @@
 // кривая
-const path = {
+export const path = {
   type: "Path",
   x: 0,
   y: 0,
@@ -110,5 +110,3 @@ const path = {
     },
   ],
 };
-
-export default path;
