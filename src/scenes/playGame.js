@@ -28,7 +28,7 @@ export class PlayGame extends Phaser.Scene {
 
     // Инициализация пути
     this.path = new Phaser.Curves.Path(0, 0);
-    this.path.fromJSON(GameOptions.path);
+    this.path.fromJSON(JSON.parse(GameOptions.path));
 
     // Установка длины пути и режима игры
     this.data.set("pathLength", this.path.getLength());
