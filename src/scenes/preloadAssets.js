@@ -8,10 +8,10 @@ export class PreloadAssets extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image("gem", "../../public/assets/gem.png");
-    this.load.image("bg", "../../public/assets/bg.webp");
-    this.load.image("Hello", "../../public/assets/Hello.webp");
-    this.load.audio("Zuma", "../../public/tracks/zuma_track.mp3");
+    this.load.image("gem", "assets/gem.png");
+    this.load.image("bg", "assets/bg.webp");
+    this.load.image("Hello", "assets/Hello.webp");
+    this.load.audio("Zuma", "tracks/zuma_track.mp3");
   }
 
   create() {
