@@ -1,3 +1,19 @@
+
+To run locally, you need to change the path in the preloadAssets.js file.
+
+with  
+    this.load.image("gem", "assets/gem.png");
+    this.load.image("bg", "assets/bg.webp");
+    this.load.image("Hello", "assets/Hello.webp");
+    this.load.audio("Zuma", "tracks/zuma_track.mp3");
+on 
+   this.load.image("gem", "../../public/assets/gem.png");
+    this.load.image("bg", "../../public/assets/bg.webp");
+    this.load.image("Hello", "../../public/assets/Hello.webp");
+    this.load.audio("Zuma", "../../public/tracks/zuma_track.mp3");
+I'll look into solving this problem a little later.
+
+
 # Phaser Vite Template
 
 This is a Phaser 3 project template that uses Vite for bundling. It supports hot-reloading for quick development workflow and includes scripts to generate production-ready builds.
