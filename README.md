@@ -6,12 +6,16 @@ with
     this.load.image("bg", "assets/bg.webp");
     this.load.image("Hello", "assets/Hello.webp");
     this.load.audio("Zuma", "tracks/zuma_track.mp3");
+
+
 on 
    this.load.image("gem", "../../public/assets/gem.png");
     this.load.image("bg", "../../public/assets/bg.webp");
     this.load.image("Hello", "../../public/assets/Hello.webp");
     this.load.audio("Zuma", "../../public/tracks/zuma_track.mp3");
 I'll look into solving this problem a little later.
+
+
 
 
 # Phaser Vite Template
