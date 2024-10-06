@@ -6,6 +6,7 @@ with
     this.load.image("bg", "assets/bg.webp");<br>
     this.load.image("Hello", "assets/Hello.webp");<br>
     this.load.audio("Zuma", "tracks/zuma_track.mp3");<br>
+
 on 
    this.load.image("gem", "../../public/assets/gem.png");<br>
     this.load.image("bg", "../../public/assets/bg.webp");<br>
